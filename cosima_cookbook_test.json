@@ -1,0 +1,67 @@
+{
+  "catalog_file": "cosima_cookbook_test.csv",
+  "attributes": [
+    {
+      "column_name": "experiment",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "output",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "realm",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "variables",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "filename",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "path",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "start_time",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "end_time",
+      "vocabulary": ""
+    },
+    {
+      "column_name": "frequency",
+      "vocabulary": ""
+    }
+  ],
+  "assets": {
+    "column_name": "path",
+    "format": "netcdf"
+  },
+  "aggregation_control": {
+    "variable_column_name": "variables",
+    "groupby_attrs": [
+      "experiment",
+      "filename"
+    ],
+    "aggregations": [
+      {
+        "type": "join_existing",
+        "attribute_name": "start_time",
+        "options": {
+          "dim": "time",
+          "coords": "minimal",
+          "compat": "override"
+        }
+      }
+    ]
+  },
+  "esmcat_version": "0.0.1",
+  "id": null,
+  "description": null,
+  "last_updated": "2022-10-07T01:43:33+00:00"
+}
