@@ -1,2 +1,3 @@
-# COMISA indexing using intake-esm
-A basic test of intake-esm relative to cosima database
+# dev_data_querying
+
+Development space for exploring options for indexing/opening dataset
