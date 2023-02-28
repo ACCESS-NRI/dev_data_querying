@@ -1,5 +1,9 @@
 *.db
 *.csv
 *.json
+*.parq
 
+__pycache__
 .ipynb_checkpoints
+
+test_data
