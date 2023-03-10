@@ -5,10 +5,19 @@ import cftime
 
 import xarray as xr
 
-from cosima_cookbook import netcdf_utils
-
 from ecgtools.builder import INVALID_ASSET, TRACEBACK
 
+# Parsers should return a dictionary containing at least the following
+# keys:
+# 
+# "path":       the file path
+# "realm":      e.g. ocean, atmosphere...
+# "variable":   the variable(s) in the file
+# "frequency":  the temporal frequency of the data
+# "start_date": the start date of the data as %Y-%m-%d, %H:%M:%S
+# "end_date":   the end date of the data as %Y-%m-%d, %H:%M:%S
+# 
+# TODO: this should be explicitly checked
 
 def cosima_parser(file):
     """Quick hacked parser for COSIMA datasets"""
@@ -44,19 +53,19 @@ def cosima_parser(file):
             dt = next_time - start_time
             if dt.days >= 365:
                 years = round(dt.days / 365)
-                frequency = f"{years} yearly"
+                frequency = f"{years}yearly"
             elif dt.days >= 28:
                 months = round(dt.days / 30)
-                frequency = f"{months} monthly"
+                frequency = f"{months}monthly"
             elif dt.days >= 1:
-                frequency = f"{dt.days} daily"
+                frequency = f"{dt.days}daily"
             else:
-                frequency = f"{dt.seconds // 3600} hourly"
+                frequency = f"{dt.seconds // 3600}hourly"
         else:
             # single time value in this file and no averaging
             frequency = "static"
             
-        return start_time.strftime("%Y-%m-%d"), end_time.strftime("%Y-%m-%d"), frequency
+        return start_time.strftime("%Y-%m-%d, %H:%M:%S"), end_time.strftime("%Y-%m-%d, %H:%M:%S"), frequency
         
     path = pathlib.Path(file)
     
@@ -65,7 +74,6 @@ def cosima_parser(file):
         filename = path.stem
         # TODO: this can be done better
         # First 5 parts are /,g,data,ik11,outputs,access-om2
-        experiment = path_parts[6]
         output = path_parts[7]
         realm = path_parts[8]
 
@@ -73,14 +81,13 @@ def cosima_parser(file):
             variable_list = [var for var in ds if 'long_name' in ds[var].attrs]
 
         info = {
-                "experiment": experiment,
-                "output": output,
-                "realm": realm,
-                "variables": variable_list,
-                "filename": filename,
                 "path": str(file),
+                "realm": realm,
+                "variable": variable_list,
+                "filename": filename,
+                
             }
-        info["start_time"], info["end_time"], info["frequency"] = _get_timeinfo(ds)
+        info["start_date"], info["end_date"], info["frequency"] = _get_timeinfo(ds)
 
         return info
 

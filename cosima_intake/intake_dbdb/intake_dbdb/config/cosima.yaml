@@ -1,0 +1,43 @@
+model: access-om2
+
+catalogues:
+  access-om2-025.025deg_jra55_iaf_omip2_cycle1:
+    description: A test catalogue
+    root_dirs:
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle1
+  access-om2-025.025deg_jra55_iaf_omip2:
+    description: Another test catalogue
+    root_dirs:
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle1
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle2
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle3
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle4
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle5
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6
+      - /g/data/ik11/outputs/access-om2-025/025deg_jra55_iaf_omip2_cycle6_ext
+
+# parser function to use with ecgtools
+parser: cosima_parser
+
+# kwargs to pass to ecgtools.Builder
+search:
+  depth: 3
+  exclude_patterns:
+    - */restart*/*
+    - *o2i.nc
+  include_patterns:
+    - *.nc
+
+# Aggregation, see https://intake-esm.readthedocs.io/en/latest/reference/esm-catalog-spec.html#aggregation-control-object
+aggregation_control:
+  groupby_attrs:
+    - realm
+    - frequency
+    - file_name
+  aggregations:
+    - type: join_existing
+      attribute_name: start_date
+      options:
+        dim: time
+        combine: by_coords
+  
