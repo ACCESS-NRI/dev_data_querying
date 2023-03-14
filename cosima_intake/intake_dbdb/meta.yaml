@@ -1,0 +1,18 @@
+description: Metacatlog for datasets managed by ACCESS-NRI
+plugins:
+  source:
+  - module: intake_xarray
+  - module: intake_esm
+sources:
+  access_om2_025deg_jra55_iaf_omip2:
+    args:
+      obj: /g/data/tm70/ds0092/projects/dev_data_querying/cosima_intake/intake_dbdb/catalogs/access_om2_025deg_jra55_iaf_omip2.json
+    description: A test catalogue
+    driver: intake_esm.esm_datastore
+    metadata: {}
+  access_om2_025deg_jra55_iaf_omip2_cycle1:
+    args:
+      obj: /g/data/tm70/ds0092/projects/dev_data_querying/cosima_intake/intake_dbdb/catalogs/access_om2_025deg_jra55_iaf_omip2_cycle1.json
+    description: A test catalogue
+    driver: intake_esm.esm_datastore
+    metadata: {}
