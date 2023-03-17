@@ -4,9 +4,16 @@ import os
 
 import yaml
 import jsonschema
+import pandas as pd
+from intake_esm.cat import (
+    Assets,
+    Attribute,
+    AggregationControl,
+)
 
 from . import parsers
-    
+from .cat import MetaCatalogModel
+
 
 # config_schema = {
 #         'type': 'object',
@@ -136,48 +143,64 @@ class CatalogBuilder:
             
             if add_to_metacatalog:
                 self._add_to_metacatalog(
-                    cat_name, 
+                    cat_name,
+                    builder.df, 
                     json_file, 
-                    description
                 )
             
-    def _add_to_metacatalog(self, name, json_file, description):
+    def _add_to_metacatalog(self, name, df, json_file):
         """
         Add an intake catalogue to the metacatalog
         
         Parameters
         ----------
         name: str
-            The name of the intake catalog
+            The catalog name
+        df: pandas Dataframe
+            Dataframe for the intake-esm catalog being added
         json_file: str
-            The path to the esmcol_obj json file
-        description: str
-            Description of the catalog
+            The path to the intake-esm obj json file
         """
         
+        def _get_variables_union(df, variable_column_name="variable"):
+            """ Get the union of all variables in a dataframe """
+            variable_sets = df[variable_column_name].apply(set)
+            return sorted(list(set.union(*variable_sets.to_list())))
+        
+        cat_df = pd.DataFrame([{
+            "model": self.model,
+            "experiment": name,
+            "realm": sorted(list(set(df["realm"].to_list()))),
+            "variable": _get_variables_union(df),
+            "frequency": sorted(list(set(df["frequency"].to_list()))),
+            "dataset_catalog": json_file,
+        }])
+        
         if os.path.isfile(self.metacatalog):
-            with open(self.metacatalog) as f:
-                meta = yaml.safe_load(f)
-        else:
-            meta = {
-                "description": "Metacatlog for datasets managed by ACCESS-NRI",
-                "plugins": {
-                    "source": [
-                        {"module": "intake_xarray"},
-                        {"module": "intake_esm"},
-                    ],
-                },
-                "sources": {}
-            }
-
-        meta["sources"][name] = {
-            "args": {
-                "obj": json_file,
-            },
-            "description": description,
-            "driver": "intake_esm.esm_datastore",
-            "metadata": {},
-        }
+            meta = MetaCatalogModel.load(
+                self.metacatalog
+            )
             
-        with open(self.metacatalog, "w") as file:
-            file.write(yaml.dump(meta, default_flow_style=False))
+            if name in list(meta.df.experiment):
+                meta._df.loc[meta.df['experiment'] == name] = cat_df
+            else:
+                meta._df = pd.concat([meta.df, cat_df], ignore_index=True)
+        else:
+            attributes = [
+                Attribute(column_name=column, vocabulary='') for column in cat_df.columns
+            ]
+            _aggregation_control = AggregationControl(
+                        variable_column_name="variable",
+                        groupby_attrs=["model", "experiment", "realm"],
+                        aggregations=[],
+                    )
+            meta = MetaCatalogModel(
+                esmcat_version="0.0.1",
+                description="A test meta-esm catalog",
+                attributes=attributes,
+                aggregation_control=_aggregation_control,
+                assets=Assets(column_name="dataset_catalog", format="netcdf"),
+            )
+            meta._df = cat_df
+            
+        meta.save(name="meta", catalog_type="file")
